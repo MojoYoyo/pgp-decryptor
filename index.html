@@ -168,8 +168,8 @@
         
         <form id="decryptForm">
             <div class="form-group">
-                <label for="encryptedFile">Encrypted File (.pgp)</label>
-                <input type="file" id="encryptedFile" accept=".pgp" required>
+                <label for="encryptedFile">Encrypted File (.pgp, .gpg)</label>
+                <input type="file" id="encryptedFile" accept=".pgp,.gpg" required>
                 <div id="fileInfo" class="file-info" style="display: none;"></div>
             </div>
 
@@ -270,19 +270,23 @@
                     passphrase: passphrase
                 });
 
-                // Decrypt the file
+                // Read the encrypted message
                 const message = await openpgp.readMessage({
                     binaryMessage: new Uint8Array(encryptedData)
                 });
 
+                // Decrypt the file - specify binary format for files like XLSX
                 const { data: decrypted } = await openpgp.decrypt({
                     message: message,
-                    decryptionKeys: privateKey
+                    decryptionKeys: privateKey,
+                    format: 'binary'
                 });
 
                 // Determine the output filename
                 let outputFilename = selectedFile.name;
                 if (outputFilename.endsWith('.pgp')) {
+                    outputFilename = outputFilename.slice(0, -4);
+                } else if (outputFilename.endsWith('.gpg')) {
                     outputFilename = outputFilename.slice(0, -4);
                 } else {
                     outputFilename = outputFilename + '.decrypted';
